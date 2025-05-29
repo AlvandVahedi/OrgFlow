@@ -9,7 +9,7 @@ logging:
   val_check_interval: 5
   wandb:
     project: rfmcsp-${model.target_distribution}-${hydra:runtime.choices.data}
-    entity: null
+    entity: alvand-drexel-university
     log_model: True
     mode: 'online'
     group: ${hydra:runtime.choices.model}-${hydra:runtime.choices.vectorfield}-${generate_id:}
@@ -45,7 +45,7 @@ train:
     fast_dev_run: False # Enable this for debug purposes
     # strategy: ddp
     # devices: auto
-    devices: 1
+    devices: 4
     accelerator: gpu
     precision: 32
     # max_steps: 10000
@@ -91,7 +91,7 @@ integrate:
 
 defaults:
   - _self_
-  - data: perov
+  - data: organic
   - model: null_nonsym
   - vectorfield: rfm_cspnet
   - hydra: trash
