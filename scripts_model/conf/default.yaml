@@ -6,7 +6,7 @@ core:
 
 logging:
   # log frequency
-  val_check_interval: 5
+  val_check_interval: 2
   wandb:
     project: rfmcsp-${model.target_distribution}-${hydra:runtime.choices.data}
     entity: alvand-drexel-university
@@ -36,6 +36,8 @@ optim:
   ema_decay: 0.999
 
 train:
+#  resume_from_path: /storage/alvand/flowmm/runs/trash/2025-10-12/12-50-49/null_params-rfm_cspnet-1ijglwmv/rfmcsp-conditional-organic/wa8kssb1/checkpoints/epoch=161-step=106434.ckpt
+  resume_from_path: null
   # reproducibility
   deterministic: warn
   random_seed: 42
@@ -43,16 +45,15 @@ train:
   # training
   pl_trainer:
     fast_dev_run: False # Enable this for debug purposes
-    # strategy: ddp
-    # devices: auto
-    devices: 4
+    strategy: ddp
+    devices: 2
     accelerator: gpu
     precision: 32
     # max_steps: 10000
     max_epochs: ${data.train_max_epochs}
     accumulate_grad_batches: 1
     num_sanity_val_steps: 1
-    gradient_clip_val: 0.5
+    gradient_clip_val: 0
     gradient_clip_algorithm: value
     profiler: simple
 

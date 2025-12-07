@@ -10,3 +10,4 @@ EOL
 
 cp .env "${SCRIPT_DIR}/remote/DiffCSP-official"
 cp .env "${SCRIPT_DIR}/remote/cdvae"
+cp .env "${SCRIPT_DIR}/remote/riemannian-fm"

@@ -1,6 +1,7 @@
-cost_coord: 400.
+cost_coord: 600.
 cost_lattice: 1.
-cost_type: 0.0
+cost_type: 0.0 # Always should be 0 for our CSP task
+cost_bond: 0.007
 affine_combine_costs: true
 target_distribution: conditional
 self_cond: false

@@ -15,7 +15,7 @@ from flowmm.old_eval.core import (
 
 
 class RecEval(object):
-    def __init__(self, pred_crys, gt_crys, stol=0.5, angle_tol=10, ltol=0.3):
+    def __init__(self, pred_crys, gt_crys, stol=0.7, angle_tol=20, ltol=0.5): # TODO: Keep this same for all experiments
         assert len(pred_crys) == len(gt_crys)
         self.matcher = StructureMatcher(stol=stol, angle_tol=angle_tol, ltol=ltol)
         self.preds = pred_crys

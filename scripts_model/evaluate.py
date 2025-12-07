@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import torch.multiprocessing as mp
+mp.set_sharing_strategy('file_system') # Test to see if it helps debug the error (TODO: remove this line and the line above it if it didn't fix the error)
+
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Literal, Sequence
@@ -243,7 +246,7 @@ def reconstruct(
             trainer = pl.Trainer(
                 accelerator="gpu",
                 strategy="ddp",
-                devices="auto",
+                devices=3,
                 callbacks=[pred_writer],
                 limit_predict_batches=eval(limit_predict_batches),
             )
@@ -1031,7 +1034,7 @@ def old_eval_metrics(
     print(f"")
     print(f"======= reconstruction =======")
     print(f"")
-    consolidated_reconstruction_path = target_dir / _get_consolidated_path(
+    consolidated_reconstruction_path = _get_consolidated_path(
         target_dir, "reconstruct"
     )
     if consolidated_reconstruction_path.exists():

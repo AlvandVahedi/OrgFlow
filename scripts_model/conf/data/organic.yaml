@@ -1,7 +1,7 @@
 dataset_name: organic
 dim_coords: 3
 root_path: ${oc.env:PROJECT_ROOT}/data/organic
-prop: formation_energy_per_atom
+prop: density
 num_targets: 1
 # prop: scaled_lattice
 # num_targets: 6
@@ -18,7 +18,7 @@ tolerance: 0.1
 
 use_space_group: false
 use_pos_index: false
-train_max_epochs: 200
+train_max_epochs: 3000
 early_stopping_patience: 300000
 teacher_forcing_max_epoch: 50
 
@@ -30,13 +30,14 @@ datamodule:
     train:
       _target_: diffcsp.pl_data.dataset.CrystDataset
       name: OrganicTrainSet
-      path: ${oc.env:PROJECT_ROOT}/data/organic/cleaned_data.csv
-      save_path: ${oc.env:PROJECT_ROOT}/data/organic/train_organic.pt
+      path: ${oc.env:PROJECT_ROOT}/data/organic/train_drug.csv
+#      save_path: ${oc.env:PROJECT_ROOT}/data/organic/train_organic/
+      save_path: ${oc.env:PROJECT_ROOT}/data/organic/train_organic_drug.pt
       prop: density
       niggli: false
       primitive: false
       graph_method: custom
-      preprocess_prebuilt: false  # <- added to skip preprocessing
+      preprocess_prebuilt: true  # <- added to skip preprocessing
       tolerance: 0.01
       use_space_group: false
       use_pos_index: false
@@ -46,13 +47,14 @@ datamodule:
     val:
       - _target_: diffcsp.pl_data.dataset.CrystDataset
         name: OrganicValSet
-        path: ${oc.env:PROJECT_ROOT}/data/organic/val.csv
-        save_path: ${oc.env:PROJECT_ROOT}/data/organic/val_organic.pt
+        path: ${oc.env:PROJECT_ROOT}/data/organic/val_drug.csv
+#        save_path: ${oc.env:PROJECT_ROOT}/data/organic/val_organic/
+        save_path: ${oc.env:PROJECT_ROOT}/data/organic/val_organic_drug.pt
         prop: density
         niggli: false
         primitive: false
         graph_method: custom
-        preprocess_prebuilt: false
+        preprocess_prebuilt: true
         tolerance: 0.01
         use_space_group: false
         use_pos_index: false
@@ -62,13 +64,14 @@ datamodule:
     test:
       - _target_: diffcsp.pl_data.dataset.CrystDataset
         name: OrganicTestSet
-        path: ${oc.env:PROJECT_ROOT}/data/organic/test.csv
-        save_path: ${oc.env:PROJECT_ROOT}/data/organic/test_organic.pt
+        path: ${oc.env:PROJECT_ROOT}/data/organic/polymorphics_subset.csv
+#        save_path: ${oc.env:PROJECT_ROOT}/data/organic/test_organic/
+        save_path: ${oc.env:PROJECT_ROOT}/data/organic/polymorphics.pt
         prop: density
         niggli: false
         primitive: false
         graph_method: custom
-        preprocess_prebuilt: false
+        preprocess_prebuilt: true
         tolerance: 0.01
         use_space_group: false
         use_pos_index: false
@@ -76,11 +79,11 @@ datamodule:
         preprocess_workers: 30
 
   num_workers:
-    train: 40
-    val: 40
-    test: 40
+    train: 1
+    val: 1
+    test: 1
 
   batch_size:
-    train: 32
-    val: 32
-    test: 32
+    train: 512
+    val: 256
+    test: 256

@@ -153,16 +153,24 @@ def run(cfg: DictConfig) -> None:
     yaml_conf: str = OmegaConf.to_yaml(cfg=cfg)
     (hydra_dir / "hparams.yaml").write_text(yaml_conf)
 
-    # Load checkpoint (if exist)
-    ckpts = list(hydra_dir.glob("*.ckpt"))
-    if len(ckpts) > 0:
-        ckpt_epochs = np.array(
-            [int(ckpt.parts[-1].split("-")[0].split("=")[1]) for ckpt in ckpts]
-        )
-        ckpt = str(ckpts[ckpt_epochs.argsort()[-1]])
-        hydra.utils.log.info(f"found checkpoint: {ckpt}")
+    # Determine checkpoint path for resuming training
+    resume_path = None
+
+    # 1. Prioritize the explicit path from the config
+    if cfg.train.resume_from_path:
+        resume_path = cfg.train.resume_from_path
+        hydra.utils.log.info(f"Resuming training from explicit path: {resume_path}")
+    # 2. If not provided, fall back to auto-resuming from the current run's directory
     else:
-        ckpt = None
+        ckpts = list(hydra_dir.glob("*.ckpt"))
+        if len(ckpts) > 0:
+            # Logic to find the latest checkpoint by epoch number
+            ckpt_epochs = np.array(
+                [int(ckpt.stem.split("epoch=")[1].split("-")[0]) for ckpt in ckpts]
+            )
+            latest_ckpt_path = ckpts[np.argmax(ckpt_epochs)]
+            resume_path = str(latest_ckpt_path)
+            hydra.utils.log.info(f"Found checkpoint in run directory. Resuming from: {resume_path}")
 
     hydra.utils.log.info("Instantiating the Trainer")
     trainer = pl.Trainer(
@@ -171,8 +179,8 @@ def run(cfg: DictConfig) -> None:
         callbacks=callbacks,
         deterministic=cfg.train.deterministic,
         check_val_every_n_epoch=cfg.logging.val_check_interval,
-        # progress_bar_refresh_rate=cfg.logging.progress_bar_refresh_rate,
-        resume_from_checkpoint=ckpt,
+        # The resume_from_checkpoint argument is now controlled by our logic above
+        resume_from_checkpoint=resume_path,
         **cfg.train.pl_trainer,
     )
 
