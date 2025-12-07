@@ -1,4 +1,3 @@
-# scripts_model/write_topk_cifs.py
 import os, argparse, csv
 from typing import List, Tuple, Optional
 import math
@@ -337,4 +336,4 @@ if __name__ == "__main__":
     main()
 
 
-# python scripts_model/write_pred_cifs_refined.py --path "/storage/alvand/orgflow/runs/trash/2025-10-15/05-26-58/null_params-rfm_cspnet-2325wzeb/every_n_epochs/eval_sweep_steps/steps_10/consolidated_reconstruct.pt"  --out ranked_kabsch --topk 10 --symprec 0.01
+# python scripts_model/write_pred_cifs_refined.py --path "/steps_10/consolidated_reconstruct.pt"  --out ranked_kabsch --topk 10 --symprec 0.01

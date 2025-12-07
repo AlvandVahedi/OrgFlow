@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import os, glob, argparse
 import numpy as np
 from typing import List, Tuple, Optional, Dict, Set

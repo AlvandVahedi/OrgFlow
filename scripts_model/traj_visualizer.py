@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import argparse, glob, os, shutil, tempfile
 from pathlib import Path
 from typing import Dict, Tuple, List

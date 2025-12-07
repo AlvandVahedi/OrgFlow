@@ -1,3 +1,0 @@
-eval "$(/home/av834/miniconda3/bin/conda shell.posix hook)"
-conda activate  /home/av834/miniconda3/envs/orgflow
-python /home/av834/.pycharm_helpers/pydev/pydevd.py --multiprocess --qt-support=auto --client localhost --port 34139 --file /storage/alvand/orgflow/scripts_analysis/prerelax.py /storage/alvand/orgflow/experiment_comparision/consolidated_reconstruct_oldFlowmm.pt /storage/alvand/orgflow/experiment_comparision/energy_oldFlowmm/energy_oldFlowmm.json /storage/alvand/orgflow/experiment_comparision/energy_oldFlowmm/ --num_jobs 1

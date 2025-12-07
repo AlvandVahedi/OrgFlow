@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# scripts_model/new_eval.py
-
 import argparse
 import pickle
 import math

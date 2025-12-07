@@ -23,6 +23,12 @@ ranked_kabsch/
 top_traj*/
 trajs_htmls/
 wandb/
+data/organic/
+data/perov_5/
+data/mp_20/
+data/mp20_llama/
+data/carbon_24/
+data/mpts_52/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

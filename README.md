@@ -4,7 +4,7 @@ OrgFlow is a conditional flow-matching framework purpose-built for **organic** c
 - **Periodic molecular graphs** with integer image shifts and curated bond orders.
 - **E(3)-equivariant message passing** over periodic edges for fractional coordinates and lattice velocities.
 - **Bond-aware Student‑t regularization** from empirical bond-length statistics to enforce chemically realistic local geometry.
-- **Fast sampling**: near-linear transport converges in ~20 ODE steps.
+- **Fast sampling**: near-linear transport converges in ~10 ODE steps.
 - **Organic-only benchmark** (177k CSD-derived structures) with molecule-disjoint splits and full preprocessing scripts.
 
 > This repository contains the codebase for the OrgFlow paper “Generative Modeling of Organic Crystal Structures from Molecular Graphs” (Vahediahmar, McDonald, Liu, Drexel University).The model and data pipelines are tailored to organic crystals and bond-aware conditioning.
@@ -19,7 +19,7 @@ OrgFlow is a conditional flow-matching framework purpose-built for **organic** c
 ```bash
 git submodule update --init --recursive
 micromamba env create -f environment.yml
-micromamba activate orgflow   # env name retained for compatibility
+micromamba activate orgflow
 ```
 
 ## Data (organic CSD-derived)
@@ -41,7 +41,7 @@ python scripts_model/run.py data=organic model=orgflow \
 Key hyperparameters (see paper/appendix):
 - λ_f (fractional coord loss), λ_l (lattice loss), λ_b (bond-aware loss)
 - Hidden dim 128, layers 12, time dim 256, SiLU activation
-- ODE steps ~20 for inference
+- ODE steps ~10 for inference
 
 ## Evaluation
 - Reconstruction and match rate using pymatgen’s `StructureMatcher` + spglib symmetry checks.
