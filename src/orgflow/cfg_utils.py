@@ -10,7 +10,7 @@ from hydra import compose, initialize_config_dir
 from omegaconf import DictConfig
 from torch_geometric.loader import DataLoader
 
-from flowmm.model.eval_utils import get_loaders
+from orgflow.model.eval_utils import get_loaders
 
 #dataset_options = Literal["carbon", "mp_20", "mpts_52", "perov", "mp_20_llama", "organic"]
 

@@ -6,7 +6,7 @@ from typing import Any
 import torch
 from geoopt import Manifold
 
-from flowmm.rfm.manifolds.null import NullManifoldWithDeltaRandom
+from orgflow.rfm.manifolds.null import NullManifoldWithDeltaRandom
 
 
 class MethodToForward(torch.nn.Module):
@@ -241,9 +241,9 @@ class VMapManifolds(torch.nn.Module):
 
 
 if __name__ == "__main__":
-    from flowmm.rfm.manifolds.euclidean import EuclideanWithLogProb
-    from flowmm.rfm.manifolds.flat_torus import FlatTorus01FixFirstAtomToOrigin
-    from flowmm.rfm.manifolds.product import ProductManifoldWithLogProb
+    from orgflow.rfm.manifolds.euclidean import EuclideanWithLogProb
+    from orgflow.rfm.manifolds.flat_torus import FlatTorus01FixFirstAtomToOrigin
+    from orgflow.rfm.manifolds.product import ProductManifoldWithLogProb
 
     dc = 2
     ns = 2

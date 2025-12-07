@@ -20,8 +20,8 @@ from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.io.vasp.sets import MPRelaxSet
 from tqdm import tqdm
 
-from flowmm.pandas_ import filter_prerelaxed, maybe_get_missing_columns
-from flowmm.pymatgen_ import COLUMNS_COMPUTATIONS, get_nary, to_structure
+from orgflow.pandas_ import filter_prerelaxed, maybe_get_missing_columns
+from orgflow.pymatgen_ import COLUMNS_COMPUTATIONS, get_nary, to_structure
 
 CHGNET_STABILITY_THRESHOLD = 0.1
 

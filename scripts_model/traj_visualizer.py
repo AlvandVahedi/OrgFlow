@@ -302,4 +302,4 @@ if __name__ == "__main__":
     main()
 
 
-# python scripts_model/traj_visualizer.py --sample_dir /storage/alvand/flowmm/top_traj_cifs/ --out_html trajs_htmls/
+# python scripts_model/traj_visualizer.py --sample_dir /storage/alvand/orgflow/top_traj_cifs/ --out_html trajs_htmls/

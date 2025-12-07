@@ -282,10 +282,10 @@ if __name__ == "__main__":
 
 
 # Reconstruct trajectories:
-# python scripts_model/evaluate.py recon_trajectory /storage/alvand/flowmm/runs/trash/2025-10-15/05-26-58/null_params-rfm_cspnet-2325wzeb/rfmcsp-conditional-organic/1z12s8cy/checkpoints/epoch=1147-step=94136.ckpt  --stage val --batch_size 256 --num_evals 1 --limit_predict_batches "1." --num_steps 10 --single_gpu --subdir "" --inference_anneal_coords --no-inference_anneal_lattice
+# python scripts_model/evaluate.py recon_trajectory /storage/alvand/orgflow/runs/trash/2025-10-15/05-26-58/null_params-rfm_cspnet-2325wzeb/rfmcsp-conditional-organic/1z12s8cy/checkpoints/epoch=1147-step=94136.ckpt  --stage val --batch_size 256 --num_evals 1 --limit_predict_batches "1." --num_steps 10 --single_gpu --subdir "" --inference_anneal_coords --no-inference_anneal_lattice
 
 # Consolidate trajectories:
-# python scripts_model/evaluate.py consolidate /storage/alvand/flowmm/runs/trash/2025-10-15/05-26-58/null_params-rfm_cspnet-2325wzeb/rfmcsp-conditional-organic/1z12s8cy/checkpoints/epoch=1147-step=94136.ckpt --task_to_save recon_trajectory
+# python scripts_model/evaluate.py consolidate /storage/alvand/orgflow/runs/trash/2025-10-15/05-26-58/null_params-rfm_cspnet-2325wzeb/rfmcsp-conditional-organic/1z12s8cy/checkpoints/epoch=1147-step=94136.ckpt --task_to_save recon_trajectory
 
 # Export top k predictions to cif file.
-# python scripts_model/export_top_traj.py --traj_pt "/storage/alvand/flowmm/runs/trash/2025-10-15/05-26-58/null_params-rfm_cspnet-2325wzeb/rfmcsp-conditional-organic/1z12s8cy/checkpoints/consolidated_recon_trajectory.pt" --ranking_csv "/storage/alvand/flowmm/ranked_kabsch/ranking.csv" --out_dir "/storage/alvand/flowmm/top_traj_cifs" --topk 10
+# python scripts_model/export_top_traj.py --traj_pt "/storage/alvand/orgflow/runs/trash/2025-10-15/05-26-58/null_params-rfm_cspnet-2325wzeb/rfmcsp-conditional-organic/1z12s8cy/checkpoints/consolidated_recon_trajectory.pt" --ranking_csv "/storage/alvand/orgflow/ranked_kabsch/ranking.csv" --out_dir "/storage/alvand/orgflow/top_traj_cifs" --topk 10

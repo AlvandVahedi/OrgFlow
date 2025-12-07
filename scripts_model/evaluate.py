@@ -18,7 +18,7 @@ from torch_geometric.data import Batch, Data, DataLoader
 
 import wandb
 from diffcsp.script_utils import GenDataset
-from flowmm.model.eval_utils import (
+from orgflow.model.eval_utils import (
     CSPDataset,
     get_loaders,
     load_cfg,
@@ -29,9 +29,9 @@ from flowmm.model.eval_utils import (
     load_project_from_wandb,
     register_omega_conf_resolvers,
 )
-from flowmm.old_eval.generation_metrics import compute_generation_metrics
-from flowmm.old_eval.lattice_metrics import compute_lattice_metrics
-from flowmm.old_eval.reconstruction_metrics import compute_reconstruction_metrics
+from orgflow.old_eval.generation_metrics import compute_generation_metrics
+from orgflow.old_eval.lattice_metrics import compute_lattice_metrics
+from orgflow.old_eval.reconstruction_metrics import compute_reconstruction_metrics
 
 TASKS_TYPE = Literal[
     "reconstruct", "recon_trajectory", "generate", "gen_trajectory", "pred"

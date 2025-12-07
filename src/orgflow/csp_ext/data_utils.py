@@ -26,7 +26,7 @@ from pymatgen.core.operations import SymmOp
 from collections import defaultdict
 import re
 
-from flowmm.model.bond_data import get_bond_data_from_key, ATOMIC_SYMBOLS
+from orgflow.model.bond_data import get_bond_data_from_key, ATOMIC_SYMBOLS
 
 
 # from multiprocessing import Pool
@@ -245,7 +245,7 @@ def build_crystal(crystal_str, niggli=True, primitive=False):
     except Exception as e:
         return None
 
-def build_crystal_flowmm(crystal_str, niggli=True, primitive=False):
+def build_crystal_orgflow(crystal_str, niggli=True, primitive=False):
     """Build crystal from cif string."""
     try:
         crystal = Structure.from_str(crystal_str, fmt='cif')
@@ -334,7 +334,7 @@ def get_symmetry_info(crystal, tol=0.01):
 def process_one(row, niggli, primitive, graph_method, prop_list, use_space_group=False, tol=0.01):
      if graph_method == 'crystalnn':
         crystal_str = row['cif']
-        crystal = build_crystal_flowmm(
+        crystal = build_crystal_orgflow(
             crystal_str, niggli=niggli, primitive=primitive)
         if crystal is None:
             return None
@@ -344,7 +344,7 @@ def process_one(row, niggli, primitive, graph_method, prop_list, use_space_group
             result_dict.update(sym_info)
         else:
             result_dict['spacegroup'] = 1
-        graph_arrays = build_crystal_graph_flowmm(crystal, graph_method)
+        graph_arrays = build_crystal_graph_orgflow(crystal, graph_method)
         properties = {k: row[k] for k in prop_list if k in row.keys()}
         result_dict.update({
             'mp_id': row['material_id'],
@@ -355,9 +355,9 @@ def process_one(row, niggli, primitive, graph_method, prop_list, use_space_group
 
         if "cif_initial" in row:
             crystal_str_initial = row['cif_initial']
-            crystal_initial = build_crystal_flowmm(
+            crystal_initial = build_crystal_orgflow(
                 crystal_str_initial, niggli=niggli, primitive=primitive)
-            graph_arrays_initial = build_crystal_graph_flowmm(crystal_initial, graph_method)
+            graph_arrays_initial = build_crystal_graph_orgflow(crystal_initial, graph_method)
             result_dict['graph_arrays_initial'] = graph_arrays_initial
             result_dict['cif_initial'] = crystal_str_initial
 
@@ -662,7 +662,7 @@ def build_crystal_graph(crystal, custom_connectivity_str=None, symmetry_ops_str=
 
     return edge_indices, to_jimages, num_atoms
 
-def build_crystal_graph_flowmm(crystal, graph_method='crystalnn'):
+def build_crystal_graph_orgflow(crystal, graph_method='crystalnn'):
     """
     """
 

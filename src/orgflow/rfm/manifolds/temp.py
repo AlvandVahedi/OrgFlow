@@ -14,7 +14,7 @@ from typing_extensions import Self
 from diffcsp.common.data_utils import lattice_params_to_matrix_torch
 from manifm.manifolds.spd import SPD as manifm_SPD
 from manifm.manifolds.spd import matrix_logarithm, normal_logprob, sqrtmh
-from flowmm.cfg_utils import dataset_options, init_loaders
+from orgflow.cfg_utils import dataset_options, init_loaders
 
 
 class AbstractSPD:

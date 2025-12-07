@@ -8,8 +8,8 @@ import numpy as np
 import torch
 from geoopt.manifolds.euclidean import Euclidean
 
-from flowmm.data import NUM_ATOMIC_BITS
-from flowmm.rfm.manifolds.masked import MaskedManifold
+from orgflow.data import NUM_ATOMIC_BITS
+from orgflow.rfm.manifolds.masked import MaskedManifold
 
 
 def int2bits(

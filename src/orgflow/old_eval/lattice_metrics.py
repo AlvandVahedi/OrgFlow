@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from flowmm.old_eval.core import (
+from orgflow.old_eval.core import (
     CrysArrayListType,
     get_crystal_array_list,
     load_gt_crystal_array_list,

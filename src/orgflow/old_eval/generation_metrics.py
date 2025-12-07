@@ -10,7 +10,7 @@ import numpy as np
 from scipy.stats import wasserstein_distance
 
 from diffcsp.eval_utils import compute_cov, prop_model_eval
-from flowmm.old_eval.core import (
+from orgflow.old_eval.core import (
     get_Crystal_obj_lists,
     save_metrics_only_overwrite_newly_computed,
 )

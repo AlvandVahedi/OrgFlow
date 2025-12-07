@@ -24,10 +24,10 @@ from diffcsp.eval_utils import (
     smact_validity,
     structure_validity,
 )
-from flowmm.data import NUM_ATOMIC_BITS, NUM_ATOMIC_TYPES
-from flowmm.joblib_ import joblib_map
-from flowmm.rfm.manifold_getter import ManifoldGetter
-from flowmm.rfm.manifolds.analog_bits import analog_bits_to_int
+from orgflow.data import NUM_ATOMIC_BITS, NUM_ATOMIC_TYPES
+from orgflow.joblib_ import joblib_map
+from orgflow.rfm.manifold_getter import ManifoldGetter
+from orgflow.rfm.manifolds.analog_bits import analog_bits_to_int
 
 CrysArrayListType = list[dict[str, np.ndarray]]
 

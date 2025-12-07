@@ -16,7 +16,7 @@ from pymatgen.core import Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from torch import Tensor
 
-from flowmm.joblib_ import joblib_map
+from orgflow.joblib_ import joblib_map
 
 
 @dataclass

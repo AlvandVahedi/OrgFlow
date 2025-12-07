@@ -13,8 +13,8 @@ from pymatgen.core import Structure
 from pymatgen.entries.computed_entries import ComputedStructureEntry
 from tqdm import tqdm
 
-from flowmm.pandas_ import filter_prerelaxed, maybe_get_missing_columns
-from flowmm.pymatgen_ import COLUMNS_COMPUTATIONS, to_structure
+from orgflow.pandas_ import filter_prerelaxed, maybe_get_missing_columns
+from orgflow.pymatgen_ import COLUMNS_COMPUTATIONS, to_structure
 
 EntriessType = list[list[ComputedStructureEntry]]
 EntryDictssType = list[list[dict]]

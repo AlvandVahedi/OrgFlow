@@ -20,8 +20,8 @@ from pytorch_lightning.loggers import WandbLogger
 
 import wandb
 from diffcsp.common.utils import log_hyperparameters
-from flowmm.model.eval_utils import register_omega_conf_resolvers
-from flowmm.model.model_pl import MaterialsRFMLitModule
+from orgflow.model.eval_utils import register_omega_conf_resolvers
+from orgflow.model.model_pl import MaterialsRFMLitModule
 
 # https://github.com/Project-MONAI/MONAI/issues/701#issuecomment-767330310
 rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)

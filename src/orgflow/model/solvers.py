@@ -6,7 +6,7 @@ import torch
 from tqdm import tqdm
 
 from manifm.solvers import euler_step, midpoint_step, rk4_step
-from flowmm.rfm.vmap import VMapManifolds
+from orgflow.rfm.vmap import VMapManifolds
 
 
 def projx_integrate_xt_to_x1(

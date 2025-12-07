@@ -61,7 +61,7 @@ def split_starts(num_atoms) -> Tuple[List[int], List[int]]:
 
 def load_vocab_symbols() -> List[str]:
     try:
-        from flowmm.model.bond_data import ATOMIC_SYMBOLS as VOCAB
+        from orgflow.model.bond_data import ATOMIC_SYMBOLS as VOCAB
         if isinstance(VOCAB, (list, tuple)) and len(VOCAB) > 0:
             return list(VOCAB)
     except Exception:
@@ -337,4 +337,4 @@ if __name__ == "__main__":
     main()
 
 
-# python scripts_model/write_pred_cifs_refined.py --path "/storage/alvand/flowmm/runs/trash/2025-10-15/05-26-58/null_params-rfm_cspnet-2325wzeb/every_n_epochs/eval_sweep_steps/steps_10/consolidated_reconstruct.pt"  --out ranked_kabsch --topk 10 --symprec 0.01
+# python scripts_model/write_pred_cifs_refined.py --path "/storage/alvand/orgflow/runs/trash/2025-10-15/05-26-58/null_params-rfm_cspnet-2325wzeb/every_n_epochs/eval_sweep_steps/steps_10/consolidated_reconstruct.pt"  --out ranked_kabsch --topk 10 --symprec 0.01

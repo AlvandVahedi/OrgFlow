@@ -9,7 +9,7 @@ import os
 RIGID_ATOM_WEIGHT = 5.0
 FLEXIBLE_ATOM_WEIGHT = 1.0
 ALLOWED_ATOMS = {'H', 'B', 'C', 'N', 'O', 'F', 'Si', 'P', 'S', 'Cl', 'Br', 'I'}
-project_root = "/storage/alvand/flowmm"
+project_root = "/storage/alvand/orgflow"
 
 # --- End Configuration ---
 

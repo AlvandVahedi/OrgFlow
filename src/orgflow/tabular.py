@@ -14,8 +14,8 @@ import joblib
 import pandas as pd
 from pymatgen.core import Composition, Structure
 
-from flowmm.pandas_ import maybe_get_missing_columns
-from flowmm.pymatgen_ import COLUMNS_COMPUTATIONS
+from orgflow.pandas_ import maybe_get_missing_columns
+from orgflow.pymatgen_ import COLUMNS_COMPUTATIONS
 
 ValidStages = Literal["train", "val", "test"]
 VALID_STAGES: Tuple[ValidStages, ...] = get_args(ValidStages)

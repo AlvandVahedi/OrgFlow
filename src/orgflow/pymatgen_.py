@@ -17,10 +17,10 @@ from pymatgen.core import (
 )
 
 from diffcsp.common.data_utils import lattices_to_params_shape
-from flowmm.data import NUM_ATOMIC_BITS, NUM_ATOMIC_TYPES
-from flowmm.geometric_ import mask_2d_to_batch
-from flowmm.joblib_ import joblib_map
-from flowmm.rfm.manifold_getter import ManifoldGetter
+from orgflow.data import NUM_ATOMIC_BITS, NUM_ATOMIC_TYPES
+from orgflow.geometric_ import mask_2d_to_batch
+from orgflow.joblib_ import joblib_map
+from orgflow.rfm.manifold_getter import ManifoldGetter
 
 trap = io.StringIO()
 

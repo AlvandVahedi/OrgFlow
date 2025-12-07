@@ -1,4 +1,4 @@
-name: flowmm
+name: orgflow
 channels:
   - nvidia
   - pytorch

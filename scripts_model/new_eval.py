@@ -12,7 +12,7 @@ from tqdm import tqdm
 from pymatgen.core import Lattice, Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher
 
-from flowmm.model.eval_utils import (
+from orgflow.model.eval_utils import (
     register_omega_conf_resolvers,
     load_model,
     get_loaders,

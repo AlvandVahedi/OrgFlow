@@ -13,8 +13,8 @@ import submitit
 import torch
 from chgnet.model import CHGNet
 
-from flowmm.chgnet_ import RelaxationData, prerelax_with_chgnet
-from flowmm.pymatgen_ import cdvae_to_structure, diffcsp_to_structure, get_get_structure
+from orgflow.chgnet_ import RelaxationData, prerelax_with_chgnet
+from orgflow.pymatgen_ import cdvae_to_structure, diffcsp_to_structure, get_get_structure
 
 #
 # Here's a really nice script for CHGNet

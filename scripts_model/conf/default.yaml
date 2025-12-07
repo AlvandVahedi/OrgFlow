@@ -1,6 +1,6 @@
 # metadata specialised for each experiment
 core:
-  version: ${get_flowmm_version:}
+  version: ${get_orgflow_version:}
   tags:
     - ${now:%Y-%m-%d}
 
@@ -36,7 +36,7 @@ optim:
   ema_decay: 0.999
 
 train:
-#  resume_from_path: /storage/alvand/flowmm/runs/trash/2025-10-12/12-50-49/null_params-rfm_cspnet-1ijglwmv/rfmcsp-conditional-organic/wa8kssb1/checkpoints/epoch=161-step=106434.ckpt
+#  resume_from_path: /storage/alvand/orgflow/runs/trash/2025-10-12/12-50-49/null_params-rfm_cspnet-1ijglwmv/rfmcsp-conditional-organic/wa8kssb1/checkpoints/epoch=161-step=106434.ckpt
   resume_from_path: null
   # reproducibility
   deterministic: warn

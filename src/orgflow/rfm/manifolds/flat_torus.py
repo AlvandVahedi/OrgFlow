@@ -7,7 +7,7 @@ import math
 import torch
 from geoopt import Euclidean
 
-from flowmm.rfm.manifolds.masked import MaskedManifold
+from orgflow.rfm.manifolds.masked import MaskedManifold
 
 
 class FlatTorus01(Euclidean):

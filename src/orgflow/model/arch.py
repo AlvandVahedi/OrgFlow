@@ -15,16 +15,16 @@ from diffcsp.common.data_utils import lattice_params_to_matrix_torch, radius_gra
 from diffcsp.pl_modules.cspnet import CSPLayer as DiffCSPLayer
 from diffcsp.pl_modules.cspnet import CSPNet as DiffCSPNet
 from diffcsp.pl_modules.cspnet import SinusoidsEmbedding
-from flowmm.data import NUM_ATOMIC_BITS, NUM_ATOMIC_TYPES
-from flowmm.rfm.manifold_getter import (
+from orgflow.data import NUM_ATOMIC_BITS, NUM_ATOMIC_TYPES
+from orgflow.rfm.manifold_getter import (
     Dims,
     ManifoldGetter,
     ManifoldGetterOut,
     lattice_manifold_types,
 )
-from flowmm.rfm.manifolds.flat_torus import FlatTorus01
-from flowmm.rfm.manifolds.lattice_params import LatticeParams
-from flowmm.rfm.manifolds.spd import SPDGivenN, spd_vector_to_lattice_matrix
+from orgflow.rfm.manifolds.flat_torus import FlatTorus01
+from orgflow.rfm.manifolds.lattice_params import LatticeParams
+from orgflow.rfm.manifolds.spd import SPDGivenN, spd_vector_to_lattice_matrix
 
 
 class CSPLayer(DiffCSPLayer):

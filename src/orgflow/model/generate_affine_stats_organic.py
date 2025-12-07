@@ -3,13 +3,13 @@ import torch
 import yaml
 from tqdm import tqdm
 
-from flowmm.model.standardize import (
+from orgflow.model.standardize import (
     compute_affine_stats,
     get_affine_stats_filename,
 )
 
-from flowmm.cfg_utils import dataset_options
-from flowmm.rfm.manifold_getter import (
+from orgflow.cfg_utils import dataset_options
+from orgflow.rfm.manifold_getter import (
     atom_type_manifold_types,
     coord_manifold_types,
     lattice_manifold_types,

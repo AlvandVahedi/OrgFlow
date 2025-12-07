@@ -8,7 +8,7 @@ import numpy as np
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from tqdm import tqdm
 
-from flowmm.old_eval.core import (
+from orgflow.old_eval.core import (
     get_Crystal_obj_lists,
     save_metrics_only_overwrite_newly_computed,
 )

@@ -13,15 +13,15 @@ from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core import Structure
 from toolz import compose
 
-from flowmm.joblib_ import joblib_map
-from flowmm.old_eval.core import save_metrics_only_overwrite_newly_computed
-from flowmm.pandas_ import (
+from orgflow.joblib_ import joblib_map
+from orgflow.old_eval.core import save_metrics_only_overwrite_newly_computed
+from orgflow.pandas_ import (
     filter_prerelaxed,
     get_intersection,
     maybe_get_missing_columns,
 )
-from flowmm.pymatgen_ import COLUMNS_COMPUTATIONS, get_chemsys, to_structure
-from flowmm.tabular import VALID_STAGES, VALID_TABULAR_DATASETS, get_tabular_dataset
+from orgflow.pymatgen_ import COLUMNS_COMPUTATIONS, get_chemsys, to_structure
+from orgflow.tabular import VALID_STAGES, VALID_TABULAR_DATASETS, get_tabular_dataset
 
 trap = io.StringIO()
 

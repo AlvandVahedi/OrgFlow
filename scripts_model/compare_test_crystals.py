@@ -12,7 +12,7 @@ import pytorch_lightning as pl
 from torch.utils.data import Subset
 from tqdm import tqdm
 
-from flowmm.model.eval_utils import load_model, get_loaders, register_omega_conf_resolvers
+from orgflow.model.eval_utils import load_model, get_loaders, register_omega_conf_resolvers
 from torch_geometric.data import DataLoader as PyGDataLoader
 
 import matplotlib

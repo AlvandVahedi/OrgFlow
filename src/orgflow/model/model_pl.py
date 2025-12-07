@@ -23,15 +23,15 @@ from diffcsp.common.data_utils import chemical_symbols
 from manifm.ema import EMA
 from manifm.model_pl import ManifoldFMLitModule, div_fn, output_and_div
 from manifm.solvers import projx_integrator, projx_integrator_return_last
-from flowmm.model.arch import CSPNet, ProjectedConjugatedCSPNet
-from flowmm.model.solvers import (
+from orgflow.model.arch import CSPNet, ProjectedConjugatedCSPNet
+from orgflow.model.solvers import (
     projx_cond_integrator_return_last,
     projx_integrate_xt_to_x1,
 )
-from flowmm.model.standardize import get_affine_stats
-from flowmm.rfm.manifold_getter import Dims, ManifoldGetter
-from flowmm.rfm.manifolds.spd import SPDGivenN, SPDNonIsotropicRandom
-from flowmm.rfm.vmap import VMapManifolds
+from orgflow.model.standardize import get_affine_stats
+from orgflow.rfm.manifold_getter import Dims, ManifoldGetter
+from orgflow.rfm.manifolds.spd import SPDGivenN, SPDNonIsotropicRandom
+from orgflow.rfm.vmap import VMapManifolds
 
 from diffcsp.common.data_utils import (
     get_pbc_distances,

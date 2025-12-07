@@ -15,9 +15,9 @@ from torch.utils.data import Dataset
 from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
 
-import flowmm
+import orgflow
 import wandb
-from flowmm.data import NUM_ATOMIC_BITS, NUM_ATOMIC_TYPES
+from orgflow.data import NUM_ATOMIC_BITS, NUM_ATOMIC_TYPES
 
 
 @functools.cache
@@ -35,7 +35,7 @@ def register_omega_conf_resolvers():
         lambda x: NUM_ATOMIC_BITS if x == "analog_bits" else NUM_ATOMIC_TYPES,
     )
     OmegaConf.register_new_resolver("generate_id", generate_id)
-    OmegaConf.register_new_resolver("get_flowmm_version", lambda: flowmm.__version__)
+    OmegaConf.register_new_resolver("get_orgflow_version", lambda: orgflow.__version__)
 
 
 def get_wandb_directory(checkpoint_path: Path) -> Path:
@@ -133,8 +133,8 @@ def load_model(
     eval_projx: bool = None,
     atol: float = None,
     rtol: float = None,
-) -> "flowmm.model.model_pl.MaterialsRFMLitModule":
-    from flowmm.model.model_pl import MaterialsRFMLitModule
+) -> "orgflow.model.model_pl.MaterialsRFMLitModule":
+    from orgflow.model.model_pl import MaterialsRFMLitModule
 
     checkpoint = str(Path(checkpoint).resolve())
     chkpnt = torch.load(checkpoint, map_location="cpu")

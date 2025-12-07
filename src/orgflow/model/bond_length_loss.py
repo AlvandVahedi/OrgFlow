@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from flowmm.model.bond_data import get_bond_data_from_key
+from orgflow.model.bond_data import get_bond_data_from_key
 
 order_to_type = {1: "SINGLE", 2: "DOUBLE", 3: "TRIPLE", 5: "AROMATIC"}
 
