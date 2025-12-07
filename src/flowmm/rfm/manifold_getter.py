@@ -176,6 +176,7 @@ class ManifoldGetter(torch.nn.Module):
         ]
         | tuple[torch.Tensor, VMapManifolds, Dims, torch.BoolTensor]
     ):
+        atom_types = self._convert_atom_types(atom_types)
         """converts from georep to the manifold flatrep"""
         a, f, mask_a_or_f = self._to_dense(
             batch, atom_types=atom_types, frac_coords=frac_coords
@@ -244,6 +245,9 @@ class ManifoldGetter(torch.nn.Module):
         )
 
     def _convert_atom_types(self, atom_types: torch.Tensor) -> torch.Tensor:
+        if isinstance(atom_types, list):
+            atom_types = torch.tensor(atom_types)
+            
         if atom_types.ndim == 1:  # the types are NOT one_hot already
             if self.atom_type_manifold in ["simplex", "null_manifold"]:
                 atom_types = self._atomic_one_hot(atom_types)  # B x NUM_ATOMIC_TYPES

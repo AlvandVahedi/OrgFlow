@@ -19,13 +19,12 @@ def process_wrapper(row, args):
         row=row,
         niggli=args.niggli,
         primitive=args.primitive,
-        graph_method=args.graph_method,
         prop_list=[args.prop],
         use_space_group=args.use_space_group,
         tol=args.tolerance,
     )
 
-def process_split(split_name, df_split, args, output_dir, num_workers=180):
+def process_split(split_name, df_split, args, output_dir, num_workers=220):
     print(f"\nProcessing {split_name} set ({len(df_split)} samples)...")
 
     results = Parallel(n_jobs=num_workers, backend="loky")(
@@ -38,6 +37,16 @@ def process_split(split_name, df_split, args, output_dir, num_workers=180):
     torch.save(data_list, save_path)
     print(f"Saved {len(data_list)} structures to {save_path}")
 
+    # # Create split subfolder to have all pt files separately
+    # split_dir = os.path.join(output_dir, split_name)
+    # os.makedirs(split_dir, exist_ok=True)
+    #
+    # # Save each molecule as mol_00000.pt, mol_00001.pt, ...
+    # for i, data in enumerate(data_list):
+    #     torch.save(data, os.path.join(split_dir, f"mol_{i:06d}.pt"))
+    #
+    # print(f"Saved {len(data_list)} molecules to {split_dir}/")
+
 def main(args):
     df = pd.read_csv(args.csv)
 
@@ -47,7 +56,7 @@ def main(args):
     output_dir = os.path.dirname(args.csv) if args.output_dir is None else args.output_dir
     os.makedirs(output_dir, exist_ok=True)
 
-    df = df.sample(frac=1, random_state=42).reset_index(drop=True)  # shuffle
+    df = df.sample(frac=0.1, random_state=42).reset_index(drop=True)  # shuffle
 
     n = len(df)
     n_train = int(n * 0.8)

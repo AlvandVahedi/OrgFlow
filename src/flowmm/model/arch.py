@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 
+import numpy as np
 import torch
 from geoopt import Manifold
 from torch import nn
@@ -239,11 +240,11 @@ class CSPNet(DiffCSPNet):
         dis_emb: str = "sin",
         n_space: int = 3,
         num_freqs: int = 128,
-        edge_style: str = "fc",
+        edge_style: str = "custom",
         cutoff: float = 7.0,
         max_neighbors: int = 20,
         ln: bool = True,
-        use_log_map: bool = True,
+        use_log_map: bool = False,
         dim_atomic_rep: int = NUM_ATOMIC_TYPES,
         lattice_manifold: lattice_manifold_types = "non_symmetric",
         concat_sum_pool: bool = False,
@@ -256,6 +257,7 @@ class CSPNet(DiffCSPNet):
         assert not (
             self_cond and lattice_manifold == "non_symmetric"
         ), "network cannot handle self_cond with non_symmetric."
+        print(f"========= Using edge_style of {edge_style} =============")
 
         self.lattice_manifold = lattice_manifold
         self.n_space = n_space
@@ -275,6 +277,9 @@ class CSPNet(DiffCSPNet):
         self.atom_latent_emb = nn.Linear(hidden_dim + time_dim, hidden_dim, bias=False)
         if act_fn == "silu":
             self.act_fn = nn.SiLU()
+        elif act_fn == "gelu":
+            print("========== USING GELU ===========")
+            self.act_fn = nn.GELU()
         if dis_emb == "sin":
             self.dis_emb = SinusoidsEmbedding(n_frequencies=num_freqs, n_space=n_space)
         elif dis_emb == "none":
@@ -329,7 +334,9 @@ class CSPNet(DiffCSPNet):
         self.represent_angle_edge_to_lattice = represent_angle_edge_to_lattice
         self.self_edges = self_edges
 
-    def gen_edges(self, num_atoms, frac_coords, lattices, node2graph):
+    def gen_edges(self, num_atoms, frac_coords, lattices, node2graph,
+                  edge_index=None, to_jimages=None
+                  ):
         if self.edge_style == "fc":
             if self.self_edges:
                 lis = [torch.ones(n, n, device=num_atoms.device) for n in num_atoms]
@@ -379,6 +386,51 @@ class CSPNet(DiffCSPNet):
             )
 
             return edge_index_new, -edge_vector_new
+        elif self.edge_style == "custom":
+            if edge_index is None or to_jimages is None:
+                raise ValueError("edge_index and to_jimages must be provided for custom edge style")
+
+            if not isinstance(edge_index, torch.Tensor):
+                edge_index = torch.tensor(edge_index, device=num_atoms.device)
+            else:
+                edge_index = edge_index.to(device=num_atoms.device)
+
+            if not isinstance(to_jimages, torch.Tensor):
+                to_jimages = torch.tensor(to_jimages, device=num_atoms.device)
+            else:
+                to_jimages = to_jimages.to(device=num_atoms.device)
+
+            if edge_index.shape[0] == 2:
+                edge_index = edge_index.T  # [num_edges, 2]
+
+            if frac_coords.ndim != 2 or frac_coords.shape[1] != 3:
+                raise ValueError("frac_coords must have shape [num_atoms, 3]")
+
+            if to_jimages.ndim != 2 or to_jimages.shape[1] != 3:
+                raise ValueError("to_jimages must have shape [num_edges, 3]")
+
+            if self.use_log_map:
+                raise NotImplementedError("Log map not implemented for custom edges")
+            else:
+                distance_vectors = frac_coords[edge_index[:, 1]] - frac_coords[edge_index[:, 0]]
+
+            distance_vectors += to_jimages.float()
+
+            # Compute correct neighbors (number of edges per graph)
+            edge_batch = node2graph[edge_index[:, 0]]  # group by source node graph
+            num_graphs = int(num_atoms.size(0)) if num_atoms.ndim == 1 else node2graph.max().item() + 1
+            neighbors = torch.bincount(edge_batch, minlength=num_graphs)
+
+            edge_index_new, _, _, edge_vector_new = self.reorder_symmetric_edges(
+                edge_index.T,  # shape [2, num_edges]
+                to_jimages,
+                neighbors,  # num of bonds
+                distance_vectors
+            )
+
+            return edge_index_new, -edge_vector_new
+        else:
+            raise ValueError(f"Unknown edge style: {self.edge_style}")
 
     def _convert_lin_to_lattice(self, lattice: torch.Tensor) -> torch.Tensor:
         if "spd" in self.lattice_manifold:
@@ -405,6 +457,8 @@ class CSPNet(DiffCSPNet):
         num_atoms,
         node2graph,
         non_zscored_lattice,
+        edge_index=None,
+        to_jimages=None,
     ):
         t_emb = self.time_emb(t)
         t_emb = t_emb.expand(
@@ -412,7 +466,9 @@ class CSPNet(DiffCSPNet):
         )  # if there is a single t, repeat for the batch
 
         # create graph
-        edges, frac_diff = self.gen_edges(num_atoms, frac_coords, lattices, node2graph)
+        edges, frac_diff = self.gen_edges(num_atoms, frac_coords, lattices, node2graph
+                                          , edge_index, to_jimages
+                            )
         edge2graph = node2graph[edges[0]]
 
         # maybe identify angles between cartesian vecs and lattice
@@ -529,6 +585,8 @@ class ProjectedConjugatedCSPNet(nn.Module):
         t: torch.Tensor,
         x: torch.Tensor,
         cond: torch.Tensor | None,
+        edge_index: torch.Tensor | None = None,
+        to_jimages: torch.Tensor | None = None,
     ) -> ManifoldGetterOut:
         atom_types, frac_coords, lattices = self.manifold_getter.flatrep_to_georep(
             x,
@@ -579,6 +637,8 @@ class ProjectedConjugatedCSPNet(nn.Module):
             num_atoms,
             node2graph,
             non_zscored_lattice,
+            edge_index=edge_index,
+            to_jimages=to_jimages,
         )
 
         # z-score outputs
@@ -611,6 +671,8 @@ class ProjectedConjugatedCSPNet(nn.Module):
         x: torch.Tensor,
         manifold: Manifold,
         cond: torch.Tensor | None = None,
+        edge_index: torch.Tensor | None = None,
+        to_jimages: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """u_t: [0, 1] x M -> T M
 
@@ -621,7 +683,9 @@ class ProjectedConjugatedCSPNet(nn.Module):
         if cond is not None:
             cond = manifold.projx(cond)
         v, *_ = self._conjugated_forward(
-            num_atoms, node2graph, dims, mask_a_or_f, t, x, cond
+            num_atoms, node2graph, dims, mask_a_or_f, t, x, cond,
+            edge_index=edge_index,
+            to_jimages=to_jimages,
         )
         v = manifold.proju(x, v)
 

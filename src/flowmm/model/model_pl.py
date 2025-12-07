@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 import warnings
 from functools import partial
 from typing import Any, Literal
@@ -18,6 +19,7 @@ from torch_geometric.data import Data
 from torchmetrics import MeanMetric, MinMetric
 
 from diffcsp.common.data_utils import lattices_to_params_shape
+from diffcsp.common.data_utils import chemical_symbols
 from manifm.ema import EMA
 from manifm.model_pl import ManifoldFMLitModule, div_fn, output_and_div
 from manifm.solvers import projx_integrator, projx_integrator_return_last
@@ -31,6 +33,11 @@ from flowmm.rfm.manifold_getter import Dims, ManifoldGetter
 from flowmm.rfm.manifolds.spd import SPDGivenN, SPDNonIsotropicRandom
 from flowmm.rfm.vmap import VMapManifolds
 
+from diffcsp.common.data_utils import (
+    get_pbc_distances,
+    frac_to_cart_coords,
+    radius_graph_pbc_wrapper,
+)
 
 def output_and_div(
     vecfield: callable[[torch.Tensor], torch.Tensor],
@@ -74,11 +81,14 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
             cost_type = cfg.model.cost_type
             cost_cross_ent = cfg.model.cost_cross_ent
 
+        cost_bond = float(getattr(cfg.model, "cost_bond", 0.0))
+
         self.costs = {
             "loss_a": cost_type,
             "loss_f": cfg.model.cost_coord,
             "loss_l": cfg.model.cost_lattice,
             "loss_ce": cost_cross_ent,
+            "loss_bond": cost_bond,
         }
         if cfg.model.affine_combine_costs:
             total_cost = sum([v for v in self.costs.values()])
@@ -109,15 +119,16 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
         # use separate metric instance for train, val and test step
         # to ensure a proper reduction over the epoch
         self.train_metrics = {
-            "loss": MeanMetric(),
-            "loss_a": MeanMetric(),
-            "loss_f": MeanMetric(),
-            "loss_l": MeanMetric(),
-            "loss_ce": MeanMetric(),
-            "unscaled/loss_a": MeanMetric(),
-            "unscaled/loss_f": MeanMetric(),
-            "unscaled/loss_l": MeanMetric(),
-            "unscaled/loss_ce": MeanMetric(),
+            "loss": MeanMetric(dist_sync_on_step=True),
+            "loss_a": MeanMetric(dist_sync_on_step=True),
+            "loss_f": MeanMetric(dist_sync_on_step=True),
+            "loss_l": MeanMetric(dist_sync_on_step=True),
+            "loss_ce": MeanMetric(dist_sync_on_step=True),
+            "loss_bond": MeanMetric(dist_sync_on_step=True),
+            "unscaled/loss_a": MeanMetric(dist_sync_on_step=True),
+            "unscaled/loss_f": MeanMetric(dist_sync_on_step=True),
+            "unscaled/loss_l": MeanMetric(dist_sync_on_step=True),
+            "unscaled/loss_ce": MeanMetric(dist_sync_on_step=True),
         }
         self.val_metrics = {
             "loss": MeanMetric(),
@@ -125,6 +136,7 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
             "loss_f": MeanMetric(),
             "loss_l": MeanMetric(),
             "loss_ce": MeanMetric(),
+            "loss_bond": MeanMetric(),
             "unscaled/loss_a": MeanMetric(),
             "unscaled/loss_f": MeanMetric(),
             "unscaled/loss_l": MeanMetric(),
@@ -136,6 +148,7 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
             "loss_f": MeanMetric(),
             "loss_l": MeanMetric(),
             "loss_ce": MeanMetric(),
+            "loss_bond": MeanMetric(),
             "unscaled/loss_a": MeanMetric(),
             "unscaled/loss_f": MeanMetric(),
             "unscaled/loss_l": MeanMetric(),
@@ -149,6 +162,7 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
             "loss_f": MinMetric(),
             "loss_l": MinMetric(),
             "loss_ce": MinMetric(),
+            "loss_bond": MinMetric(),
             "unscaled/loss_a": MinMetric(),
             "unscaled/loss_f": MinMetric(),
             "unscaled/loss_l": MinMetric(),
@@ -166,11 +180,11 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
 
     @torch.no_grad()
     def sample(
-        self,
-        batch: Data,
-        x0: torch.Tensor = None,
-        num_steps: int = 1_000,
-        entire_traj: bool = False,
+            self,
+            batch: Data,
+            x0: torch.Tensor = None,
+            num_steps: int = 1_000,
+            entire_traj: bool = False,
     ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         (
             x1,
@@ -212,6 +226,8 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
             dims=dims,
             num_atoms=batch.num_atoms,
             node2graph=batch.batch,
+            edge_index=batch.edge_index,
+            to_jimages=batch.to_jimages,
             mask_a_or_f=mask_a_or_f,
             num_steps=num_steps,
             entire_traj=entire_traj,
@@ -304,25 +320,30 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
 
     @torch.no_grad()
     def finish_sampling(
-        self,
-        x0: torch.Tensor,
-        manifold: VMapManifolds,
-        a_manifold: VMapManifolds,
-        f_manifold: VMapManifolds,
-        l_manifold: VMapManifolds,
-        dims: Dims,
-        num_atoms: torch.LongTensor,
-        node2graph: torch.LongTensor,  # aka batch.batch
-        mask_a_or_f: torch.BoolTensor,
-        num_steps: int,
-        entire_traj: bool,
+            self,
+            x0: torch.Tensor,
+            manifold: VMapManifolds,
+            a_manifold: VMapManifolds,
+            f_manifold: VMapManifolds,
+            l_manifold: VMapManifolds,
+            dims: Dims,
+            num_atoms: torch.LongTensor,
+            node2graph: torch.LongTensor,
+            edge_index: torch.LongTensor,
+            to_jimages: torch.Tensor,
+            mask_a_or_f: torch.BoolTensor,
+            num_steps: int,
+            entire_traj: bool,
     ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        # bind the real graph connectivity into the vector field
         vecfield = partial(
             self.vecfield,
             num_atoms=num_atoms,
             node2graph=node2graph,
             dims=dims,
             mask_a_or_f=mask_a_or_f,
+            edge_index=edge_index,
+            to_jimages=to_jimages,
         )
 
         compute_traj_velo_norms = self.cfg.integrate.get(
@@ -353,7 +374,7 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
                 t=torch.atleast_2d(t),
                 x=torch.atleast_2d(x),
                 manifold=manifold,
-                cond=torch.atleast_2d(cond) if isinstance(cond, torch.Tensor) else cond,
+                cond=torch.atleast_2d(cond) if isinstance(cond, torch.Tensor) else cond
             )
             if anneal_types:
                 out[:, : dims.a].mul_(anneal_factor)
@@ -614,7 +635,7 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
                         t,
                     ).detach_()
 
-        u_t_pred = vecfield(t=t, x=x_t, manifold=manifold, cond=cond)
+        u_t_pred = vecfield(t=t, x=x_t, manifold=manifold, cond=cond, edge_index=batch.edge_index, to_jimages=batch.to_jimages)
         diff = u_t_pred - u_t
 
         max_num_atoms = mask_a_or_f.size(-1)
@@ -650,8 +671,63 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
                 )
             loss_ce = (loss_ce.sum(dim=-1) / mask_a_or_f.sum(dim=-1)).mean()
         else:
+            x1_pred_t = None
             loss_ce = torch.Tensor([0.0]).squeeze().to(diff)
 
+        # Bond-length prior
+        cost_bond = float(getattr(self.cfg.model, "cost_bond", 0.0))
+        loss_bond_raw = torch.zeros((), dtype=diff.dtype, device=diff.device)
+
+        if cost_bond > 0.0 and hasattr(batch, "bond_mean") and batch.edge_index.numel() > 0:
+            if x1_pred_t is None:
+                x1_pred_t = projx_integrate_xt_to_x1(manifold, None, x_t, t, u_t_pred)
+
+            a_pred, f_pred, L_pred = self.manifold_getter.flatrep_to_crystal(x1_pred_t, dims, mask_a_or_f)
+            lengths_pred, angles_pred = lattices_to_params_shape(L_pred)
+
+            num_graphs = batch.num_atoms.size(0)
+            src_nodes = batch.edge_index[0]
+            edge2graph = batch.batch[src_nodes]
+            num_bonds_per_graph = torch.bincount(edge2graph, minlength=num_graphs)
+
+            d_out = get_pbc_distances(
+                coords=f_pred,
+                edge_index=batch.edge_index,
+                lengths=lengths_pred,
+                angles=angles_pred,
+                to_jimages=batch.to_jimages,
+                num_atoms=batch.num_atoms,
+                num_bonds=num_bonds_per_graph,
+                coord_is_cart=False,
+            )
+            dists = d_out["distances"]  # [E]
+
+            mean = batch.bond_mean.to(dists)
+            var = batch.bond_var.to(dists)
+
+            valid = torch.isfinite(dists) & torch.isfinite(mean) & torch.isfinite(var)
+            valid &= (dists > 0.0) & (dists < 5.0)
+            if hasattr(batch, "bond_mask"):
+                valid &= batch.bond_mask.to(torch.bool)
+
+            if valid.any():
+                # standard deviation with a safe floor
+                std = var.clamp_min(1e-4).sqrt()  # floor variance at 1e-4
+                z = (dists - mean) / std
+                z = torch.nan_to_num(z, nan=0.0, posinf=0.0, neginf=0.0)
+
+                # Student-t NLL (df = 3 works well). No big numbers.
+                nu = 3.0
+                # add scale term so the model cannot cheat by shrinking std
+                loss_terms = 0.5 * (nu + 1.0) * torch.log1p((z * z) / nu) + torch.log(std)
+                # optional cap for extreme outliers
+                loss_terms = torch.clamp(loss_terms, max=10.0)
+                loss_bond_raw = loss_terms[valid].mean()
+            else:
+                loss_bond_raw = torch.zeros((), dtype=dists.dtype, device=dists.device)
+        # ------------------------------------------------
+
+        # Original inner products
         s = 0
         e = dims.a
         loss_a = (
@@ -677,6 +753,7 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
             + self.costs["loss_f"] * loss_f
             + self.costs["loss_l"] * loss_l
             + self.costs["loss_ce"] * loss_ce
+            + cost_bond * loss_bond_raw  # new term
         )
 
         return {
@@ -689,6 +766,7 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
             "unscaled/loss_f": loss_f,
             "unscaled/loss_l": loss_l,
             "unscaled/loss_ce": loss_ce,
+            "loss_bond": cost_bond * loss_bond_raw,  # log scaled
         }
 
     def training_step(self, batch: Data, batch_idx: int):
@@ -707,6 +785,7 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
         else:
             # skip step if loss is NaN.
             print(f"Skipping iteration because loss is {loss_dict['loss'].item()}.")
+            sys.exit(-1)
             return None
 
         # we can return here dict with any tensors
@@ -740,6 +819,7 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
                     v,
                     on_epoch=True,
                     prog_bar=True,
+                    sync_dist=True,
                     batch_size=batch.batch_size,
                 )
                 metrics[k].update(v.cpu())
@@ -809,9 +889,10 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
         atom_types, frac_coords, lattices = self.manifold_getter.flatrep_to_crystal(
             recon, dims, mask_a_or_f
         )
+        z_types = self._decode_atom_types_to_Z(atom_types, dim=-1)
         lengths, angles = lattices_to_params_shape(lattices)
         out = {
-            "atom_types": atom_types,
+            "atom_types": z_types,
             "frac_coords": frac_coords,
             "lattices": lattices,
             "lengths": lengths,
@@ -850,8 +931,9 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
             a, f, l = self.manifold_getter.flatrep_to_crystal(
                 recon_step, dims, mask_a_or_f
             )
+            z_types = self._decode_atom_types_to_Z(a, dim=-1)
             lns, angs = lattices_to_params_shape(l)
-            atom_types.append(a)
+            atom_types.append(z_types)
             frac_coords.append(f)
             lattices.append(l)
             lengths.append(lns)
@@ -903,9 +985,10 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
         atom_types, frac_coords, lattices = self.manifold_getter.flatrep_to_crystal(
             recon, dims, mask_a_or_f
         )
+        z_types = self._decode_atom_types_to_Z(atom_types, dim=-1)
         lengths, angles = lattices_to_params_shape(lattices)
         out = {
-            "atom_types": atom_types,
+            "atom_types": z_types,
             "frac_coords": frac_coords,
             "lattices": lattices,
             "lengths": lengths,
@@ -946,8 +1029,9 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
             a, f, l = self.manifold_getter.flatrep_to_crystal(
                 recon_step, dims, mask_a_or_f
             )
+            z_types = self._decode_atom_types_to_Z(a, dim=-1)
             lns, angs = lattices_to_params_shape(l)
-            atom_types.append(a)
+            atom_types.append(z_types)
             frac_coords.append(f)
             lattices.append(l)
             lengths.append(lns)
@@ -986,9 +1070,13 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
         atom_types, frac_coords, lattices = self.manifold_getter.flatrep_to_crystal(
             recon, dims, mask_a_or_f
         )
+        z_types = self._decode_atom_types_to_Z(atom_types, dim=-1)
+        assert z_types.ndim >= 1 and int(z_types.min()) >= 1 and int(
+            z_types.max()) <= self.manifold_getter.NUM_ATOMIC_TYPES if hasattr(self.manifold_getter,
+                                                                               "NUM_ATOMIC_TYPES") else 100
         lengths, angles = lattices_to_params_shape(lattices)
         out = {
-            "atom_types": atom_types,
+            "atom_types": z_types,
             "frac_coords": frac_coords,
             "lattices": lattices,
             "lengths": lengths,
@@ -1009,22 +1097,23 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
         )
 
     def validation_epoch_end(self, outputs: list[Any]):
-        out = {}
-        for key, val_metric in self.val_metrics.items():
-            val_metric_value = (
-                val_metric.compute()
-            )  # get val accuracy from current epoch
-            val_metric_best = self.val_metrics_best[key]
-            val_metric_best.update(val_metric_value)
+        keys = outputs[0].keys()
+
+        # for each key, gather the per-batch tensors, mean them, and log
+        for k in keys:
+            # stack [out[k] for out in outputs] → tensor of shape (num_batches,)
+            vals = torch.stack([out[k] for out in outputs], dim=0)
+            epoch_mean = vals.mean()
+
+            # log it under "val/<key>"
+            # sync_dist=True makes sure it’s also reduced across GPUs in DDP
             self.log(
-                f"val/best/{key}",
-                val_metric_best.compute(),
+                f"val/{k}",
+                epoch_mean,
                 on_epoch=True,
                 prog_bar=True,
+                sync_dist=True,
             )
-            val_metric.reset()
-            out[key] = val_metric_value
-        return out
 
     def test_step(self, batch: Any, batch_idx: int):
         return self.shared_eval_step(
@@ -1038,6 +1127,15 @@ class MaterialsRFMLitModule(ManifoldFMLitModule):
     def test_epoch_end(self, outputs: list[Any]):
         for test_metric in self.test_metrics.values():
             test_metric.reset()
+
+    def _decode_atom_types_to_Z(self, a_tensor: torch.Tensor, dim: int = -1) -> torch.Tensor:
+        mg = self.manifold_getter
+        if mg.atom_type_manifold in ["null_manifold", "simplex"]:
+            return mg._inverse_atomic_one_hot(a_tensor, dim=dim)  # returns Z in [1..NUM_ATOMIC_TYPES]
+        elif mg.atom_type_manifold == "analog_bits":
+            return mg._inverse_atomic_bits(a_tensor)  # returns Z in [1..NUM_ATOMIC_TYPES]
+        else:
+            raise ValueError("Unknown atom_type_manifold")
 
     def predict_step(self, batch: Any, batch_idx: int):
         if not hasattr(batch, "frac_coords"):
